@@ -9,23 +9,35 @@
 </head>
 <body>
     <h1>Tic-Tac-Toe</h1>
-    <div id="board" class="board">
-        <div class="cell" data-cell></div>
-        <div class="cell" data-cell></div>
-        <div class="cell" data-cell></div>
-        <div class="cell" data-cell></div>
-        <div class="cell" data-cell></div>
-        <div class="cell" data-cell></div>
-        <div class="cell" data-cell></div>
-        <div class="cell" data-cell></div>
-        <div class="cell" data-cell></div>
+
+    <div id="modeSelection">
+        <h2>Choose Your Mode</h2>
+        <button id="onePlayer">Single Player</button>
+        <button id="twoPlayer">Two Players</button>
     </div>
-    <div id="instructions">
-        <p>First player is X, second is O. Take turns clicking a square to win.</p>
-    </div>
-    <div class="winning-message" id="winningMessage">
-        <div data-winning-message-text></div>
-        <button id="restartButton">Restart</button>
+
+    <div id="gameContainer" class="hide">
+        <div id="board" class="board">
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+        </div>
+        <div id="instructions">
+            <p>First player is X, second is O. Take turns clicking a square to win.</p>
+        </div>
+        <div id="change-mode-container">
+            <button id="changeModeButton">Change Mode</button>
+        </div>
+        <div class="winning-message" id="winningMessage">
+            <div data-winning-message-text></div>
+            <button id="restartButton">Restart</button>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
