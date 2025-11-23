@@ -53,10 +53,15 @@ function startGame() {
 }
 
 function handleClick(e) {
+    const cell = e.target;
+    if (cell.classList.contains(X_CLASS) || cell.classList.contains(CIRCLE_CLASS)) {
+        return;
+    }
+
     if (gameMode === 'one-player' && circleTurn) {
         return; // Don't allow human to play for computer
     }
-    const cell = e.target;
+    
     const currentClass = circleTurn ? CIRCLE_CLASS : X_CLASS;
     placeMark(cell, currentClass);
     if (checkWin(currentClass)) {
