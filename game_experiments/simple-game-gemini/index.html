@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="hud">
+            <div class="hud-left">
+                <div class="icon level-screen-btn"></div>
+            </div>
+            <div class="hud-center">
+                <h1 class="game-title">Level Up</h1>
+            </div>
+        </div>
+        <div class="play-area">
+            <div id="ground-platform"></div>
+            <div id="ground-split"></div>
+            <div id="player"></div>
+            <div id="exit"></div>
+            <div id="level-up-overlay">
+                <div class="overlay-content">
+                    <h2>Level Up!</h2>
+                    <button id="next-level-btn">Next Level</button>
+                </div>
+            </div>
+            <div id="game-over-overlay">
+                <div class="overlay-content">
+                    <h2>Game Over</h2>
+                    <button id="try-again-btn">Try Again</button>
+                </div>
+            </div>
+        </div>
+        <div class="info-section">
+            <p>Use 'ArrowLeft' and 'ArrowRight' to move. Press 'Space' to jump.</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

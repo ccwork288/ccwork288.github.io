@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+    background-color: #C2B280; /* Dark, sandy background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.game-container {
+    width: 800px;
+    height: 600px;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #333;
+}
+
+.play-area {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    right: 50px;
+    bottom: 100px;
+    background-color: #F5F5DC; /* Light-colored play area */
+    border: 2px solid #000;
+}
+
+#ground-platform {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 33.33%; /* 1/3 of play area */
+    background-color: #8B7355; /* Brown ground */
+    border-top: 3px solid #000;
+    z-index: 1;
+}
+
+#player {
+    position: absolute;
+    left: 20px;
+    bottom: 33.33%; /* Start on ground platform */
+    width: 20px;
+    height: 20px;
+    background-color: #ff69b4; /* Hot pink protagonist */
+    transition: opacity 0.3s ease;
+    z-index: 10;
+    transform-origin: center center;
+    border: 2px solid #ff1493; /* Deeper pink border for visibility */
+}
+
+#exit {
+    position: absolute;
+    right: 20px;
+    bottom: 33.33%; /* On ground platform */
+    width: 30px;
+    height: 40px;
+    background-color: #808080; /* Gray exit door */
+    border: 2px solid #000;
+    z-index: 10;
+}
+
+#level-up-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 150, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+#level-up-overlay .overlay-content h2 {
+    color: #ffeb3b;
+}
+
+#game-over-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.overlay-content {
+    text-align: center;
+    color: white;
+}
+
+.overlay-content h2 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 36px;
+    margin-bottom: 30px;
+    color: #ff4444;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+#try-again-btn, #next-level-btn {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    padding: 15px 30px;
+    background-color: #4CAF50;
+    color: white;
+    border: 3px solid #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#try-again-btn:hover, #next-level-btn:hover {
+    background-color: #45a049;
+    transform: scale(1.1);
+}
+
+#try-again-btn:active, #next-level-btn:active {
+    transform: scale(0.95);
+}
+
+#ground-split {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 33.33%; /* Same height as ground platform */
+    background: linear-gradient(to bottom, #000 0%, #1a1a1a 50%, #000 100%);
+    transform: translateX(-50%);
+    z-index: 5;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.hud-left {
+    display: flex;
+}
+
+.icon {
+    width: 30px;
+    height: 30px;
+    border: 2px solid #000;
+    margin-right: 10px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.icon:hover {
+    transform: scale(1.1);
+}
+
+.icon:active {
+    transform: scale(0.95);
+}
+
+.level-screen-btn {
+    position: relative;
+    background-color: #4CAF50;
+}
+
+.level-screen-btn::before {
+    content: '≡';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.hud-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.game-title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 24px;
+    color: #333;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 2px;
+}
+
+.info-section {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #333;
+    font-size: 16px;
+}
