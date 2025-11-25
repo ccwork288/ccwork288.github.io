@@ -20,17 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDead = false;
     let isFalling = false; // Track if player is falling into the pit
 
-    // Ground level (1/3 up from bottom)
-    const groundLevel = 0;
-    const playAreaHeight = playArea.offsetHeight;
-    const groundHeight = playAreaHeight / 3;
+    // Game dimensions (will be updated on resize)
+    let playAreaHeight, groundHeight, playAreaWidth, splitMaxWidth, splitTriggerX;
 
-    // Ground split obstacle state
-    let splitTriggered = false;
-    let splitWidth = 0;
-    const splitMaxWidth = playArea.offsetWidth / 2; // Half of play area
-    const splitGrowthSpeed = 5; // Pixels per frame (increased from 1 to 5)
-    const splitTriggerX = playArea.offsetWidth / 2; // Midpoint of play area
+    const groundLevel = 0; // Player's Y position when on the ground platform
 
     // Game constants
     const playerSpeed = 4; // Max horizontal speed
@@ -40,9 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const airFriction = 0.98; // Friction in air (higher = less friction)
     const jumpPower = 12;
     const gravity = 0.4;
+    const splitGrowthSpeed = 5; // Pixels per frame
 
     // Element dimensions
-    const playAreaWidth = playArea.offsetWidth;
     const playerWidth = player.offsetWidth;
     const playerHeight = player.offsetHeight;
 
@@ -54,6 +47,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let spacePressed = false;
     let jumpCooldown = 0; // Prevents rapid jump spam
     const jumpCooldownFrames = 10; // Must wait this many frames between jumps
+
+    // Ground split obstacle state
+    let splitTriggered = false;
+    let splitWidth = 0;
+
+    function updateDimensions() {
+        playAreaHeight = playArea.offsetHeight;
+        playAreaWidth = playArea.offsetWidth;
+        groundHeight = playAreaHeight / 3;
+        splitMaxWidth = playAreaWidth / 2;
+        splitTriggerX = playAreaWidth / 2;
+    }
+
 
     function gameLoop() {
         // Don't update game if player is dead
@@ -147,9 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (playerX < 0) {
             playerX = 0;
+            velocityX = 0;
         }
         if (playerX + playerWidth > playAreaWidth) {
             playerX = playAreaWidth - playerWidth;
+            velocityX = 0;
         }
 
         // 2. Door collision - get door position dynamically
@@ -165,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const isOverExit = playerCenterX > exitX && playerCenterX < exitX + exitWidth;
 
         // Check if player crossed through the door platform from above
-        // Previous position (before velocity was applied)
         const previousY = playerY - velocityY;
 
         // Landing on the door: center is over door, was above it, now at or below it, and falling
@@ -182,14 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 3. Entering the door - only from the sides while grounded at ground level
-        // Check if player is entering from left or right side (not falling from above)
         if (isPlayerEnteringDoorFromSide(exitX, exitWidth, exitHeight)) {
             handleLevelComplete();
         }
 
 
         // Update player's style
-        // playerY is measured from ground platform surface, so add ground height for absolute positioning
         player.style.left = `${playerX}px`;
         player.style.bottom = `${groundHeight + playerY}px`;
     }
@@ -203,26 +208,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isPlayerEnteringDoorFromSide(exitX, exitWidth, exitHeight) {
-        const playerRight = playerX + playerWidth;
         const playerTop = playerY + playerHeight;
-
-        // Must be at ground level (not on top of door) - player bottom Y should be at ground (0)
-        const atGroundLevel = Math.abs(playerY - groundLevel) < 2; // Within 2px of ground level
-
-        // Check if player's center is overlapping with door horizontally
+        const atGroundLevel = Math.abs(playerY - groundLevel) < 2;
         const playerCenterX = playerX + (playerWidth / 2);
         const horizontalOverlap = playerCenterX > exitX && playerCenterX < exitX + exitWidth;
-
-        // Check if player is within the door's vertical space
         const withinDoorHeight = playerTop > groundLevel && playerY < exitHeight;
 
-        // Only enter if at ground level, overlapping horizontally, within door bounds, and grounded
         return atGroundLevel && horizontalOverlap && withinDoorHeight && isGrounded;
     }
 
     function handleDeath() {
         isDead = true;
-        // Delay game over screen slightly to show the fall
         setTimeout(() => {
             player.style.opacity = '0';
             gameOverOverlay.style.display = 'flex';
@@ -236,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetGame() {
-        // Reset player state
         playerX = 20;
         playerY = 0;
         velocityX = 0;
@@ -246,104 +241,81 @@ document.addEventListener('DOMContentLoaded', () => {
         isDead = false;
         isFalling = false;
 
-        // Reset obstacle state
         splitTriggered = false;
         splitWidth = 0;
         groundSplit.style.width = '0px';
 
-        // Reset player visuals
         player.style.transform = 'rotate(0deg)';
         player.style.opacity = '1';
 
-        // Hide overlays
         gameOverOverlay.style.display = 'none';
         levelUpOverlay.style.display = 'none';
     }
 
+    // --- Event Listeners ---
+    function setupEventListeners() {
+        document.addEventListener('keydown', (event) => {
+            if (keys.hasOwnProperty(event.key)) {
+                keys[event.key] = true;
+            }
+            if (event.code === 'Space' && !spacePressed) {
+                spacePressed = true;
+                jump();
+            }
+        });
 
-    // Event Listeners
-    document.addEventListener('keydown', (event) => {
-        if (keys.hasOwnProperty(event.key)) {
-            keys[event.key] = true;
-        }
-        if (event.code === 'Space' && !spacePressed) {
-            spacePressed = true;
-            jump();
-        }
-    });
+        document.addEventListener('keyup', (event) => {
+            if (keys.hasOwnProperty(event.key)) {
+                keys[event.key] = false;
+            }
+            if (event.code === 'Space') {
+                spacePressed = false;
+            }
+        });
 
-    document.addEventListener('keyup', (event) => {
-        if (keys.hasOwnProperty(event.key)) {
-            keys[event.key] = false;
-        }
-        if (event.code === 'Space') {
+        // Combined touch and mouse events for on-screen controls
+        const setupButtonEvents = (button, key) => {
+            const startEvent = (e) => {
+                e.preventDefault();
+                keys[key] = true;
+            };
+            const endEvent = (e) => {
+                e.preventDefault();
+                keys[key] = false;
+            };
+            button.addEventListener('touchstart', startEvent);
+            button.addEventListener('touchend', endEvent);
+            button.addEventListener('mousedown', startEvent);
+            button.addEventListener('mouseup', endEvent);
+        };
+
+        setupButtonEvents(leftBtn, 'ArrowLeft');
+        setupButtonEvents(rightBtn, 'ArrowRight');
+
+        const jumpStart = (e) => {
+            e.preventDefault();
+            if (!spacePressed) {
+                spacePressed = true;
+                jump();
+            }
+        };
+        const jumpEnd = (e) => {
+            e.preventDefault();
             spacePressed = false;
-        }
-    });
+        };
+        jumpBtn.addEventListener('touchstart', jumpStart);
+        jumpBtn.addEventListener('touchend', jumpEnd);
+        jumpBtn.addEventListener('mousedown', jumpStart);
+        jumpBtn.addEventListener('mouseup', jumpEnd);
 
-    // Mobile controls
-    leftBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        keys.ArrowLeft = true;
-    });
-    leftBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        keys.ArrowLeft = false;
-    });
-    leftBtn.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        keys.ArrowLeft = true;
-    });
-    leftBtn.addEventListener('mouseup', (e) => {
-        e.preventDefault();
-        keys.ArrowLeft = false;
-    });
-    rightBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        keys.ArrowRight = true;
-    });
-    rightBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        keys.ArrowRight = false;
-    });
-    rightBtn.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        keys.ArrowRight = true;
-    });
-    rightBtn.addEventListener('mouseup', (e) => {
-        e.preventDefault();
-        keys.ArrowRight = false;
-    });
-    jumpBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (!spacePressed) {
-            spacePressed = true;
-            jump();
-        }
-    });
-    jumpBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        spacePressed = false;
-    });
-    jumpBtn.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        if (!spacePressed) {
-            spacePressed = true;
-            jump();
-        }
-    });
-    jumpBtn.addEventListener('mouseup', (e) => {
-        e.preventDefault();
-        spacePressed = false;
-    });
+        tryAgainBtn.addEventListener('click', resetGame);
+        nextLevelBtn.addEventListener('click', resetGame);
 
+        window.addEventListener('resize', updateDimensions);
+    }
 
-    // Try Again button
-    tryAgainBtn.addEventListener('click', resetGame);
-
-    // Next Level button (resets to same level for now)
-    nextLevelBtn.addEventListener('click', resetGame);
-
-    // Start the game loop
+    // --- Initialization ---
+    updateDimensions();
+    setupEventListeners();
     setInterval(gameLoop, 1000 / 60); // Run at ~60 FPS
 });

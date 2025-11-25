@@ -11,8 +11,11 @@ body {
 }
 
 .game-container {
-    width: 800px;
-    height: 600px;
+    width: 100%;
+    height: auto;
+    max-width: 800px; /* Max width on larger screens */
+    max-height: 100vh;
+    aspect-ratio: 4 / 3;
     position: relative;
     overflow: hidden;
     border: 2px solid #333;
