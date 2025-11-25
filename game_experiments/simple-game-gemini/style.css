@@ -239,6 +239,12 @@ body {
     align-items: center;
 }
 
+.arrow-controls {
+    display: flex;
+    gap: 10px; /* Small gap between left and right buttons */
+    align-items: center;
+}
+
 @media (max-width: 800px) {
     .mobile-controls {
         display: flex;
