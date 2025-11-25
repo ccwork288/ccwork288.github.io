@@ -10,6 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const leftBtn = document.getElementById('left-btn');
     const rightBtn = document.getElementById('right-btn');
     const jumpBtn = document.getElementById('jump-btn');
+    const aboutOverlay = document.getElementById('about-overlay');
+    const closeAboutBtn = document.getElementById('close-about-btn');
+    const levelScreenBtn = document.querySelector('.level-screen-btn');
+    const versionDisplay = document.getElementById('version-display');
+
+    // --- Version ---
+    const version = "0.3.0"; // This will be replaced by the Makefile
+    versionDisplay.textContent = version;
+
 
     // Player state
     let playerX = 20;
@@ -312,6 +321,14 @@ document.addEventListener('DOMContentLoaded', () => {
         nextLevelBtn.addEventListener('click', resetGame);
 
         window.addEventListener('resize', updateDimensions);
+
+        levelScreenBtn.addEventListener('click', () => {
+            aboutOverlay.style.display = 'flex';
+        });
+
+        closeAboutBtn.addEventListener('click', () => {
+            aboutOverlay.style.display = 'none';
+        });
     }
 
     // --- Initialization ---
