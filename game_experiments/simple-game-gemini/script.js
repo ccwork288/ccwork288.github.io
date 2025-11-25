@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const airFriction = 0.98; // Friction in air (higher = less friction)
     const jumpPower = 12;
     const gravity = 0.4;
-    const splitGrowthSpeed = 5; // Pixels per frame
+    const splitGrowthSpeed = 20; // Pixels per frame - increased for more challenge
 
     // Element dimensions
     const playerWidth = player.offsetWidth;
@@ -61,18 +61,82 @@ document.addEventListener('DOMContentLoaded', () => {
     let splitTriggered = false;
     let splitWidth = 0;
 
+    // Animation state
+    let playerFacingLeft = false;
+    let animState = 'idle'; // 'idle', 'walking', 'jumping'
+    let animFrame = 0;
+    let animTimer = 0;
+    const animSpeed = 8; // Lower is faster
+
     function updateDimensions() {
         playAreaHeight = playArea.offsetHeight;
         playAreaWidth = playArea.offsetWidth;
         groundHeight = playAreaHeight / 3;
-        splitMaxWidth = playAreaWidth / 2;
+        splitMaxWidth = playAreaWidth * 0.7; // 70% of screen width
         splitTriggerX = playAreaWidth / 2;
     }
+
+    function updateAnimation() {
+        // Determine animation state
+        if (!isGrounded) {
+            animState = 'jumping';
+        } else if (Math.abs(velocityX) > 0.1) {
+            animState = 'walking';
+        } else {
+            animState = 'idle';
+        }
+
+        // Update animation frame
+        animTimer++;
+        if (animTimer > animSpeed) {
+            animTimer = 0;
+            if (animState === 'walking') {
+                animFrame = (animFrame + 1) % 2; // Two walking frames
+            } else {
+                animFrame = 0;
+            }
+        }
+
+        // Set sprite based on state and frame
+        let frameX = 0; // idle frame
+        if (animState === 'walking') {
+            frameX = animFrame === 0 ? 1 : 2; // walking frames 1 or 2
+        } else if (animState === 'jumping') {
+            frameX = 3; // jump frame
+        }
+
+        // With background-size: 400%, we need to divide by (numFrames - 1) to get correct positions
+        // Frame 0: 0%, Frame 1: 33.333%, Frame 2: 66.666%, Frame 3: 100%
+        const framePosition = (frameX / 3) * 100;
+        player.style.backgroundPosition = `${framePosition}% 0`;
+
+        // Flip sprite based on direction
+        const currentScale = player.style.transform.match(/scaleX\(([^)]+)\)/);
+        const currentScaleX = currentScale ? parseFloat(currentScale[1]) : 1;
+
+        if (velocityX > 0.1 && playerFacingLeft) {
+            playerFacingLeft = false;
+        } else if (velocityX < -0.1 && !playerFacingLeft) {
+            playerFacingLeft = true;
+        }
+        
+        // Retain rotation when falling
+        if (!isFalling) {
+           player.style.transform = `scaleX(${playerFacingLeft ? -1 : 1})`;
+        } else {
+            const rotationDegrees = Math.min(360, Math.abs(playerY) * 5);
+            player.style.transform = `scaleX(${playerFacingLeft ? -1 : 1}) rotate(${rotationDegrees}deg)`;
+        }
+    }
+
 
 
     function gameLoop() {
         // Don't update game if player is dead
         if (isDead) return;
+
+        // Update animation
+        updateAnimation();
 
         // Decrement jump cooldown
         if (jumpCooldown > 0) {
@@ -138,20 +202,13 @@ document.addEventListener('DOMContentLoaded', () => {
             velocityX *= 0.5; // Slow down horizontal movement
         }
 
-        // If falling into pit, keep falling and add rotation
+        // If falling into pit, keep falling
         if (isFalling) {
-            // Add rotation based on how far they've fallen
-            const rotationDegrees = Math.min(360, Math.abs(playerY) * 5);
-            player.style.transform = `rotate(${rotationDegrees}deg)`;
-
             // Once fallen far enough, trigger death
             if (playerY < -100) {
                 handleDeath();
                 return;
             }
-        } else {
-            // Reset rotation when not falling
-            player.style.transform = 'rotate(0deg)';
         }
 
         // 1. Ground and play area bounds collision (only if not falling into pit)
@@ -249,12 +306,16 @@ document.addEventListener('DOMContentLoaded', () => {
         jumpCooldown = 0;
         isDead = false;
         isFalling = false;
+        playerFacingLeft = false;
+        animState = 'idle';
+        animFrame = 0;
+        animTimer = 0;
 
         splitTriggered = false;
         splitWidth = 0;
         groundSplit.style.width = '0px';
 
-        player.style.transform = 'rotate(0deg)';
+        player.style.transform = 'scaleX(1) rotate(0deg)';
         player.style.opacity = '1';
 
         gameOverOverlay.style.display = 'none';

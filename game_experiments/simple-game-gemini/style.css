@@ -46,13 +46,24 @@ body {
     position: absolute;
     left: 20px;
     bottom: 33.33%; /* Start on ground platform */
-    width: 20px;
-    height: 20px;
-    background-color: #ff69b4; /* Hot pink protagonist */
+    width: 32px; /* Adjusted for better visibility */
+    height: 40px; /* Adjusted for better proportions */
     transition: opacity 0.3s ease;
     z-index: 10;
     transform-origin: center center;
-    border: 2px solid #ff1493; /* Deeper pink border for visibility */
+    /*
+     Person Sprite Sheet
+     Frames (32x40 each):
+     1. Idle - Standing straight
+     2. Walk 1 - Left leg forward
+     3. Walk 2 - Right leg forward
+     4. Jump - Arms up, legs together
+     All elements strictly constrained to x=12-20 (center 8px) to prevent bleeding
+    */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="128" height="40"><defs><style>.skin{fill:%23ffdbac}.hair{fill:%23654321}.shirt{fill:%234a90e2}.pants{fill:%232c3e50}.shoes{fill:%23000}</style></defs><g id="idle"><circle class="skin" cx="16" cy="8" r="4"/><ellipse class="hair" cx="16" cy="6" rx="4.5" ry="3"/><rect class="shirt" x="13" y="13" width="6" height="8" rx="1"/><path class="skin" d="M13 15 L12.5 19 M19 15 L19.5 19" stroke="%23ffdbac" stroke-width="1" fill="none"/><rect class="pants" x="14" y="21" width="2" height="10"/><rect class="pants" x="16" y="21" width="2" height="10"/><ellipse class="shoes" cx="15" cy="32" rx="1.5" ry="1.2"/><ellipse class="shoes" cx="17" cy="32" rx="1.5" ry="1.2"/></g><g id="walk1" transform="translate(32 0)"><circle class="skin" cx="16" cy="8" r="4"/><ellipse class="hair" cx="16" cy="6" rx="4.5" ry="3"/><rect class="shirt" x="13" y="13" width="6" height="8" rx="1"/><path class="skin" d="M13 15 L12.5 19 M19 15 L19.5 20" stroke="%23ffdbac" stroke-width="1" fill="none"/><path class="pants" d="M14 21 L13.5 31 L15.5 31 L15.5 21 Z"/><path class="pants" d="M16 21 L18 31 L16.5 31 L16.5 21 Z"/><ellipse class="shoes" cx="14.5" cy="32" rx="1.5" ry="1.2"/><ellipse class="shoes" cx="17.2" cy="32" rx="1.5" ry="1.2"/></g><g id="walk2" transform="translate(64 0)"><circle class="skin" cx="16" cy="8" r="4"/><ellipse class="hair" cx="16" cy="6" rx="4.5" ry="3"/><rect class="shirt" x="13" y="13" width="6" height="8" rx="1"/><path class="skin" d="M13 15 L12.5 20 M19 15 L19.5 19" stroke="%23ffdbac" stroke-width="1" fill="none"/><path class="pants" d="M14 21 L16.5 31 L18 31 L15.5 21 Z"/><path class="pants" d="M16 21 L14 31 L15.5 31 L16.5 21 Z"/><ellipse class="shoes" cx="16.5" cy="32" rx="1.5" ry="1.2"/><ellipse class="shoes" cx="14.8" cy="32" rx="1.5" ry="1.2"/></g><g id="jump" transform="translate(96 0)"><circle class="skin" cx="16" cy="8" r="4"/><ellipse class="hair" cx="16" cy="6" rx="4.5" ry="3"/><rect class="shirt" x="13" y="13" width="6" height="8" rx="1"/><path class="skin" d="M13 14 L12.5 11 M19 14 L19.5 11" stroke="%23ffdbac" stroke-width="1" fill="none"/><rect class="pants" x="14" y="21" width="2" height="9"/><rect class="pants" x="16" y="21" width="2" height="9"/><ellipse class="shoes" cx="15" cy="31" rx="1.5" ry="1.2"/><ellipse class="shoes" cx="17" cy="31" rx="1.5" ry="1.2"/></g></svg>');
+    background-repeat: no-repeat;
+    background-size: 400% 100%; /* 4 frames */
+    background-position: 0% 0;
 }
 
 #exit {
