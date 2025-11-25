@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const versionDisplay = document.getElementById('version-display');
 
     // --- Version ---
-    const version = "0.3.0"; // This will be replaced by the Makefile
+    const version = "0.4.0"; // This will be replaced by the Makefile
     versionDisplay.textContent = version;
 
 
