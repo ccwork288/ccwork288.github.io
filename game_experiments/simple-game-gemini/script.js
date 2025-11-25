@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const tryAgainBtn = document.getElementById('try-again-btn');
     const nextLevelBtn = document.getElementById('next-level-btn');
     const groundSplit = document.getElementById('ground-split');
+    const leftBtn = document.getElementById('left-btn');
+    const rightBtn = document.getElementById('right-btn');
+    const jumpBtn = document.getElementById('jump-btn');
 
     // Player state
     let playerX = 20;
@@ -277,6 +280,63 @@ document.addEventListener('DOMContentLoaded', () => {
             spacePressed = false;
         }
     });
+
+    // Mobile controls
+    leftBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys.ArrowLeft = true;
+    });
+    leftBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keys.ArrowLeft = false;
+    });
+    leftBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        keys.ArrowLeft = true;
+    });
+    leftBtn.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+        keys.ArrowLeft = false;
+    });
+    rightBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys.ArrowRight = true;
+    });
+    rightBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keys.ArrowRight = false;
+    });
+    rightBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        keys.ArrowRight = true;
+    });
+    rightBtn.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+        keys.ArrowRight = false;
+    });
+    jumpBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (!spacePressed) {
+            spacePressed = true;
+            jump();
+        }
+    });
+    jumpBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        spacePressed = false;
+    });
+    jumpBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        if (!spacePressed) {
+            spacePressed = true;
+            jump();
+        }
+    });
+    jumpBtn.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+        spacePressed = false;
+    });
+
 
     // Try Again button
     tryAgainBtn.addEventListener('click', resetGame);

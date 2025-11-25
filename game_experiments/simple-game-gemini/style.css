@@ -212,3 +212,72 @@ body {
     color: #333;
     font-size: 16px;
 }
+
+.mobile-controls {
+    display: none; /* Hidden by default */
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    height: 80px;
+    padding: 0 20px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (max-width: 800px) {
+    .mobile-controls {
+        display: flex;
+    }
+    .info-section {
+        display: none; /* Hide keyboard info on mobile */
+    }
+}
+
+.control-btn {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+}
+
+.control-btn:active {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#left-btn::before, #right-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    transform: translate(-50%, -50%);
+}
+
+#left-btn::before {
+    border-width: 15px 20px 15px 0;
+    border-color: transparent #fff transparent transparent;
+    margin-left: -5px;
+}
+
+#right-btn::before {
+    border-width: 15px 0 15px 20px;
+    border-color: transparent transparent transparent #fff;
+    margin-left: 5px;
+}
+
+#jump-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #4CAF50;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 18px;
+    border: 3px solid #fff;
+}
