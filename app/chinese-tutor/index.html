@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mandarin Learning App — Serge Melnyk Lessons 1–10</title>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #334155;
+    --accent: #ef4444;
+    --accent-2: #f59e0b;
+    --good: #22c55e;
+    --bad: #ef4444;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #475569;
+  }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: var(--text); min-height: 100vh; }
+  header { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 16px 24px; position: sticky; top: 0; z-index: 10; }
+  .header-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; max-width: 1100px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 22px; background: linear-gradient(90deg, #ef4444, #f59e0b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  select, button { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 14px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  select:hover, button:hover { background: var(--panel-2); }
+  button.primary { background: linear-gradient(135deg, #ef4444, #dc2626); border-color: transparent; font-weight: 600; }
+  button.primary:hover { filter: brightness(1.1); }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--panel); border-radius: 12px; padding: 4px; border: 1px solid var(--border); overflow-x: auto; }
+  .tab { flex: 1; min-width: 100px; padding: 10px 14px; border: none; background: transparent; color: var(--muted); border-radius: 8px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .tab.active { background: linear-gradient(135deg, #ef4444, #f59e0b); color: white; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .flashcard { background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 60px 40px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; user-select: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+  .char { font-size: 96px; line-height: 1.1; margin-bottom: 16px; font-family: "PingFang SC","Microsoft YaHei","Noto Sans CJK SC", sans-serif; }
+  .pinyin { font-size: 28px; color: var(--accent-2); margin-bottom: 12px; }
+  .english { font-size: 20px; color: var(--muted); max-width: 600px; }
+  .card-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 12px; flex-wrap: wrap; }
+  .progress { color: var(--muted); font-size: 14px; }
+  .reveal-hint { margin-top: 24px; color: var(--muted); font-size: 13px; font-style: italic; }
+  .practice-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 16px; }
+  .target { text-align: center; margin-bottom: 24px; }
+  .target .char { font-size: 64px; margin-bottom: 12px; }
+  .target .pinyin { font-size: 22px; }
+  .target .english { font-size: 16px; }
+  .mic-button { display: block; margin: 24px auto; width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; font-size: 40px; cursor: pointer; transition: transform 0.15s; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4); }
+  .mic-button:hover { transform: scale(1.05); }
+  .mic-button.recording { background: linear-gradient(135deg, #22c55e, #16a34a); animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  .heard { text-align: center; margin-top: 16px; min-height: 90px; padding: 16px; background: rgba(255,255,255,0.04); border-radius: 12px; border: 1px solid var(--border); }
+  .heard.correct { border-color: var(--good); background: rgba(34,197,94,0.1); }
+  .heard.incorrect { border-color: var(--bad); background: rgba(239,68,68,0.1); }
+  .heard.listening { border-color: var(--accent-2); background: rgba(245,158,11,0.08); }
+  .heard-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .heard-text { font-size: 30px; margin: 8px 0; font-family: "PingFang SC","Microsoft YaHei", sans-serif; }
+  .heard-interim { font-size: 22px; color: var(--muted); font-style: italic; min-height: 30px; font-family: "PingFang SC","Microsoft YaHei", sans-serif; }
+  .feedback { font-weight: 600; margin-top: 6px; }
+  .feedback.correct { color: var(--good); }
+  .feedback.incorrect { color: var(--bad); }
+  .score-detail { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .dialogue-box { background: var(--panel); border-radius: 16px; border: 1px solid var(--border); padding: 24px; min-height: 400px; }
+  .dialogue-title { color: var(--accent-2); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .turn { margin-bottom: 16px; padding: 16px; border-radius: 12px; max-width: 85%; }
+  .turn.app { background: rgba(239, 68, 68, 0.15); border-left: 3px solid var(--accent); }
+  .turn.user { background: rgba(34, 197, 94, 0.15); border-left: 3px solid var(--good); margin-left: auto; }
+  .turn.prompt { background: rgba(245, 158, 11, 0.15); border-left: 3px solid var(--accent-2); margin-left: auto; border-style: dashed; }
+  .turn-speaker { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .turn-char { font-size: 22px; font-family: "PingFang SC","Microsoft YaHei", sans-serif; margin-bottom: 4px; }
+  .turn-pinyin { font-size: 14px; color: var(--accent-2); }
+  .turn-english { font-size: 13px; color: var(--muted); font-style: italic; margin-top: 4px; }
+  .turn .play-btn { float: right; background: transparent; border: 1px solid var(--border); padding: 4px 10px; font-size: 12px; }
+  .quiz-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
+  .quiz-question { font-size: 24px; margin-bottom: 8px; text-align: center; }
+  .quiz-question .char { font-size: 56px; }
+  .quiz-sub { text-align: center; color: var(--muted); margin-bottom: 24px; }
+  .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 600px) { .quiz-options { grid-template-columns: 1fr; } }
+  .option { background: var(--panel-2); border: 1px solid var(--border); padding: 16px; border-radius: 12px; cursor: pointer; text-align: left; font-size: 15px; }
+  .option:hover { background: #475569; }
+  .option.correct { background: rgba(34,197,94,0.25); border-color: var(--good); }
+  .option.wrong { background: rgba(239,68,68,0.25); border-color: var(--bad); }
+  .score-bar { display: flex; justify-content: space-between; background: var(--panel); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 16px; }
+  .help { background: rgba(245, 158, 11, 0.1); border-left: 3px solid var(--accent-2); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; color: #fde68a; }
+
+  /* Write/Stroke practice */
+  .write-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+  .stroke-grid { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
+  .stroke-cell { background: rgba(255,255,255,0.03); border: 2px solid var(--border); border-radius: 12px; padding: 8px; position: relative; }
+  .stroke-cell.complete { border-color: var(--good); }
+  .stroke-cell.error { border-color: var(--bad); }
+  .stroke-cell .stroke-label { position: absolute; top: 4px; left: 8px; font-size: 11px; color: var(--muted); }
+  .stroke-cell .stroke-pinyin { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--accent-2); }
+  .write-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+  .write-info { text-align: center; color: var(--muted); font-size: 13px; margin-top: 8px; min-height: 20px; }
+  .write-target { text-align: center; margin-bottom: 16px; }
+  .write-target .pinyin { font-size: 20px; }
+  .write-target .english { font-size: 14px; }
+  .mode-toggle { display: inline-flex; background: var(--panel-2); border-radius: 8px; padding: 3px; gap: 2px; }
+  .mode-toggle button { padding: 6px 14px; font-size: 13px; border: none; background: transparent; }
+  .mode-toggle button.active { background: linear-gradient(135deg, #ef4444, #f59e0b); color: white; }
+</style>
+</head>
+<body>
+<header><div class="header-row"><h1>Mandarin Practice — Lessons 1–10</h1><div class="controls"><select id="lessonSelect"></select><select id="voiceSelect" title="Mandarin voice"></select></div></div></header>
+<main>
+<div class="tabs">
+<button class="tab active" data-view="flashcards">Flashcards</button>
+<button class="tab" data-view="listen">Listen &amp; Speak</button>
+<button class="tab" data-view="dialogue">Dialogue</button>
+<button class="tab" data-view="write">Write</button>
+<button class="tab" data-view="quiz">Quiz</button>
+</div>
+
+<section id="view-flashcards" class="view active">
+<div class="flashcard" id="flashcard"><div class="char" id="fcChar">你好</div><div class="pinyin" id="fcPinyin" style="display:none;">nǐ hǎo</div><div class="english" id="fcEnglish" style="display:none;">hello</div><div class="reveal-hint" id="fcHint">Click card to reveal pinyin & meaning</div></div>
+<div class="card-controls"><button id="fcPrev">← Prev</button><div class="progress"><span id="fcIndex">1</span> / <span id="fcTotal">0</span></div><button class="primary" id="fcSpeak">🔊 Speak</button><button id="fcNext">Next →</button></div>
+<div style="margin-top:16px; text-align:center;"><button id="fcShuffle">🔀 Shuffle</button><button id="fcSentences">Switch to sentences</button></div>
+</section>
+
+<section id="view-listen" class="view">
+<div class="help" id="speechHelp">Tap the microphone to start, say the phrase, then tap again to stop. The app will tell you how close you got. Works best in Chrome or Edge desktop.</div>
+<div class="practice-card">
+<div class="target"><div class="char" id="lsChar">你好</div><div class="pinyin" id="lsPinyin">nǐ hǎo</div><div class="english" id="lsEnglish">hello</div></div>
+<div style="text-align:center;"><button class="primary" id="lsPlay">🔊 Listen first</button></div>
+<button class="mic-button" id="lsMic" title="Tap to start/stop">🎤</button>
+<div class="heard" id="lsHeard"><div class="heard-label">Your turn — tap the mic</div></div>
+</div>
+<div class="card-controls"><button id="lsPrev">← Prev</button><div class="progress"><span id="lsIndex">1</span> / <span id="lsTotal">0</span></div><button id="lsNext">Next →</button></div>
+<div style="margin-top:16px; text-align:center;"><button id="lsToggleType">Practice: Vocabulary</button></div>
+</section>
+
+<section id="view-dialogue" class="view">
+<div class="help">Practice a real conversation. The app plays one role; tap the mic to start speaking your line, tap again when done. Tap any line to replay it.</div>
+<div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;"><select id="dialogueSelect"></select><button id="dlgRestart">↺ Restart</button><button class="primary" id="dlgPlayAll">▶ Play whole dialogue</button></div>
+<div class="dialogue-box" id="dlgBox"></div>
+<div style="margin-top:12px;text-align:center;"><button class="mic-button" id="dlgMic" style="width:70px;height:70px;font-size:28px;">🎤</button><div style="color:var(--muted);font-size:13px;margin-top:8px;">Tap to start, tap again to stop</div></div>
+</section>
+
+<section id="view-write" class="view">
+<div class="help">Practice writing Chinese characters. <strong>Animate</strong> shows the correct stroke order. <strong>Quiz</strong> hides the character — trace each stroke with your mouse or finger and the app scores your accuracy.</div>
+<div class="write-card">
+<div class="write-target"><div id="wrPinyin" class="pinyin">nǐ hǎo</div><div id="wrEnglish" class="english">hello</div></div>
+<div class="stroke-grid" id="strokeGrid"></div>
+<div class="write-info" id="writeInfo"></div>
+<div class="write-controls">
+  <div class="mode-toggle">
+    <button id="wrModeAnimate" class="active">Animate</button>
+    <button id="wrModeQuiz">Quiz</button>
+  </div>
+  <button id="wrRedo">↺ Redo</button>
+</div>
+</div>
+<div class="card-controls"><button id="wrPrev">← Prev</button><div class="progress"><span id="wrIndex">1</span> / <span id="wrTotal">0</span></div><button id="wrNext">Next →</button></div>
+</section>
+
+<section id="view-quiz" class="view">
+<div class="score-bar"><span>Question <span id="qNum">1</span> of <span id="qTotal">10</span></span><span>Score: <span id="qScore">0</span></span></div>
+<div class="quiz-card"><div class="quiz-question" id="quizQuestion"></div><div class="quiz-sub" id="quizSub"></div><div class="quiz-options" id="quizOptions"></div><div id="quizFeedback" style="margin-top:12px; text-align:center; min-height:24px;"></div></div>
+<div style="margin-top:16px;text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"><button id="quizRestart">↺ New Quiz</button><select id="quizMode"><option value="char-to-eng">Character → English</option><option value="eng-to-char">English → Character</option><option value="listen">Listen → Meaning</option><option value="pinyin">Character → Pinyin</option></select></div>
+</section>
+</main>
+
+<script>
+/* ============================================================
+   LESSON DATA — Serge Melnyk Lessons 1-10, simplified characters
+============================================================ */
+const LESSONS = [
+  {id:1,title:"L1 — Greetings",vocab:[{c:"你好",p:"nǐ hǎo",e:"hello, hi"},{c:"你好吗",p:"nǐ hǎo ma",e:"how are you?"},{c:"吗",p:"ma",e:"question particle"},{c:"好久不见",p:"hǎo jiǔ bù jiàn",e:"long time no see"},{c:"很",p:"hěn",e:"very"},{c:"很好",p:"hěn hǎo",e:"very good"},{c:"也",p:"yě",e:"also"},{c:"你呢",p:"nǐ ne",e:"and you?"},{c:"呢",p:"ne",e:"particle for elliptical questions"},{c:"好",p:"hǎo",e:"good"},{c:"你",p:"nǐ",e:"you"},{c:"我",p:"wǒ",e:"I, me"},{c:"谢谢",p:"xiè xie",e:"thank you"},{c:"再见",p:"zài jiàn",e:"goodbye"}],sentences:[{c:"你好！",p:"nǐ hǎo!",e:"Hello!"},{c:"好久不见，你好吗？",p:"hǎo jiǔ bù jiàn, nǐ hǎo ma?",e:"Long time no see, how are you?"},{c:"很好，谢谢，你呢？",p:"hěn hǎo, xiè xie, nǐ ne?",e:"Very good, thanks, and you?"}],dialogues:[{title:"Greeting an old friend",turns:[{speaker:"A",c:"好久不见，你好吗？",p:"hǎo jiǔ bù jiàn, nǐ hǎo ma?",e:"Long time no see, how are you?"},{speaker:"B",c:"很好，谢谢，你呢？",p:"hěn hǎo, xiè xie, nǐ ne?",e:"Very good, thanks, and you?"},{speaker:"A",c:"我也很好。",p:"wǒ yě hěn hǎo.",e:"I'm also very good."},{speaker:"B",c:"再见！",p:"zài jiàn!",e:"Goodbye!"}]}]},
+  {id:2,title:"L2 — Musical Tones",vocab:[{c:"妈",p:"mā",e:"mother (1st tone)"},{c:"麻",p:"má",e:"hemp (2nd tone)"},{c:"马",p:"mǎ",e:"horse (3rd tone)"},{c:"骂",p:"mà",e:"to scold (4th tone)"},{c:"小姐",p:"xiǎo jiě",e:"miss, waitress"},{c:"要",p:"yào",e:"to want"},{c:"水饺",p:"shuǐ jiǎo",e:"dumplings (boiled)"},{c:"睡觉",p:"shuì jiào",e:"to sleep"}],sentences:[{c:"小姐，我要水饺。",p:"xiǎo jiě, wǒ yào shuǐ jiǎo.",e:"Miss, I want dumplings."},{c:"小姐，我要睡觉。",p:"xiǎo jiě, wǒ yào shuì jiào.",e:"Miss, I want to sleep."}],dialogues:[{title:"Tone joke in a restaurant",turns:[{speaker:"Student",c:"小姐，我要睡觉！",p:"xiǎo jiě, wǒ yào shuì jiào!",e:"Miss, I want to sleep! (wrong tone)"},{speaker:"Waitress",c:"你要水饺，对吗？",p:"nǐ yào shuǐ jiǎo, duì ma?",e:"You want dumplings, right?"},{speaker:"Student",c:"对，水饺！谢谢！",p:"duì, shuǐ jiǎo! xiè xie!",e:"Yes, dumplings! Thank you!"}]}]},
+  {id:3,title:"L3 — Greetings & Needs",vocab:[{c:"朋友",p:"péng yǒu",e:"friend"},{c:"男朋友",p:"nán péng yǒu",e:"boyfriend"},{c:"女朋友",p:"nǚ péng yǒu",e:"girlfriend"},{c:"男",p:"nán",e:"man"},{c:"女",p:"nǚ",e:"woman"},{c:"是",p:"shì",e:"to be"},{c:"去",p:"qù",e:"to go"},{c:"一起",p:"yī qǐ",e:"together"},{c:"忙",p:"máng",e:"busy"},{c:"他",p:"tā",e:"he/him"},{c:"她",p:"tā",e:"she/her"},{c:"他们",p:"tā men",e:"they"},{c:"我们",p:"wǒ men",e:"we"},{c:"你们",p:"nǐ men",e:"you (plural)"},{c:"都",p:"dōu",e:"all, both"},{c:"茶",p:"chá",e:"tea"},{c:"喝",p:"hē",e:"to drink"},{c:"吃",p:"chī",e:"to eat"},{c:"吃饭",p:"chī fàn",e:"to eat (a meal)"},{c:"饭",p:"fàn",e:"rice, meal"},{c:"咖啡",p:"kā fēi",e:"coffee"}],sentences:[{c:"我要吃饭。",p:"wǒ yào chī fàn.",e:"I want to eat."},{c:"我要喝茶。",p:"wǒ yào hē chá.",e:"I want to drink tea."},{c:"你忙吗？",p:"nǐ máng ma?",e:"Are you busy?"},{c:"我们一起去吃饭。",p:"wǒ men yī qǐ qù chī fàn.",e:"Let's go eat together."},{c:"我不要喝咖啡。",p:"wǒ bù yào hē kā fēi.",e:"I don't want to drink coffee."}],dialogues:[{title:"Going to eat together",turns:[{speaker:"A",c:"你好。",p:"nǐ hǎo.",e:"Hello."},{speaker:"B",c:"你好。",p:"nǐ hǎo.",e:"Hello."},{speaker:"A",c:"你忙吗？",p:"nǐ máng ma?",e:"Are you busy?"},{speaker:"B",c:"我不忙，你呢？",p:"wǒ bù máng, nǐ ne?",e:"I'm not busy, and you?"},{speaker:"A",c:"我也不忙。我们一起去吃饭！",p:"wǒ yě bù máng. wǒ men yī qǐ qù chī fàn!",e:"I'm not busy either. Let's go eat together!"},{speaker:"B",c:"好！",p:"hǎo!",e:"Good!"}]},{title:"Coffee or tea?",turns:[{speaker:"A",c:"她是我女朋友。",p:"tā shì wǒ nǚ péng yǒu.",e:"She is my girlfriend."},{speaker:"B",c:"你要喝咖啡吗？",p:"nǐ yào hē kā fēi ma?",e:"Do you want to drink coffee?"},{speaker:"C",c:"谢谢，我喝茶，好吗？",p:"xiè xie, wǒ hē chá, hǎo ma?",e:"Thanks, I'll drink tea, OK?"},{speaker:"B",c:"好，喝茶！",p:"hǎo, hē chá!",e:"Good, drink tea!"}]}]},
+  {id:4,title:"L4 — Introductions & Nationality",vocab:[{c:"怎么样",p:"zěn me yàng",e:"what's up? how is it?"},{c:"不错",p:"bù cuò",e:"not bad"},{c:"还可以",p:"hái kě yǐ",e:"ok, so-so"},{c:"这",p:"zhè",e:"this"},{c:"那",p:"nà",e:"that"},{c:"谁",p:"shéi",e:"who"},{c:"哪",p:"nǎ",e:"which"},{c:"国",p:"guó",e:"country"},{c:"人",p:"rén",e:"person"},{c:"中国",p:"zhōng guó",e:"China"},{c:"欧洲",p:"ōu zhōu",e:"Europe"},{c:"法国",p:"fǎ guó",e:"France"},{c:"加拿大",p:"jiā ná dà",e:"Canada"},{c:"美国",p:"měi guó",e:"USA"},{c:"英国",p:"yīng guó",e:"England"},{c:"德国",p:"dé guó",e:"Germany"},{c:"工作",p:"gōng zuò",e:"work, job"},{c:"做",p:"zuò",e:"to do, to make"},{c:"什么",p:"shén me",e:"what?"},{c:"老师",p:"lǎo shī",e:"teacher"},{c:"学生",p:"xué shēng",e:"student"},{c:"医生",p:"yī shēng",e:"doctor"},{c:"老板",p:"lǎo bǎn",e:"boss"},{c:"会",p:"huì",e:"can, to be able"},{c:"说",p:"shuō",e:"to speak"},{c:"汉语",p:"hàn yǔ",e:"Chinese language"},{c:"新加坡",p:"xīn jiā pō",e:"Singapore"}],sentences:[{c:"你怎么样？",p:"nǐ zěn me yàng?",e:"How are you?"},{c:"这是谁？",p:"zhè shì shéi?",e:"Who is this?"},{c:"你是哪国人？",p:"nǐ shì nǎ guó rén?",e:"Which country are you from?"},{c:"我是法国人。",p:"wǒ shì fǎ guó rén.",e:"I am French."},{c:"你做什么工作？",p:"nǐ zuò shén me gōng zuò?",e:"What work do you do?"},{c:"我是医生。",p:"wǒ shì yī shēng.",e:"I am a doctor."},{c:"你会说汉语吗？",p:"nǐ huì shuō hàn yǔ ma?",e:"Can you speak Chinese?"},{c:"我会说汉语。",p:"wǒ huì shuō hàn yǔ.",e:"I can speak Chinese."}],dialogues:[{title:"Meeting a teacher",turns:[{speaker:"A",c:"你怎么样？",p:"nǐ zěn me yàng?",e:"How are you?"},{speaker:"B",c:"还可以，你呢？",p:"hái kě yǐ, nǐ ne?",e:"I'm ok, and you?"},{speaker:"A",c:"不错！那是谁？",p:"bù cuò! nà shì shéi?",e:"Not bad! Who is that?"},{speaker:"B",c:"那是我们老师，他是中国人。",p:"nà shì wǒ men lǎo shī, tā shì zhōng guó rén.",e:"That's our teacher, he is Chinese."},{speaker:"Teacher",c:"你好，你是哪国人？",p:"nǐ hǎo, nǐ shì nǎ guó rén?",e:"Hello, what country are you from?"},{speaker:"B",c:"我是加拿大人。",p:"wǒ shì jiā ná dà rén.",e:"I'm Canadian."},{speaker:"Teacher",c:"你做什么工作？",p:"nǐ zuò shén me gōng zuò?",e:"What work do you do?"},{speaker:"B",c:"我是医生。",p:"wǒ shì yī shēng.",e:"I'm a doctor."}]},{title:"Surprised you speak Chinese",turns:[{speaker:"A",c:"你会说汉语！",p:"nǐ huì shuō hàn yǔ!",e:"You can speak Chinese!"},{speaker:"B",c:"是，我会说汉语。",p:"shì, wǒ huì shuō hàn yǔ.",e:"Yes, I can speak Chinese."},{speaker:"A",c:"不错！你是哪国人？",p:"bù cuò! nǐ shì nǎ guó rén?",e:"Not bad! Where are you from?"},{speaker:"B",c:"我是法国人。",p:"wǒ shì fǎ guó rén.",e:"I'm French."}]}]},
+  {id:5,title:"L5 — Names & Polite Phrases",vocab:[{c:"可以",p:"kě yǐ",e:"may, can"},{c:"请",p:"qǐng",e:"please"},{c:"问",p:"wèn",e:"to ask"},{c:"问题",p:"wèn tí",e:"question"},{c:"请问",p:"qǐng wèn",e:"excuse me"},{c:"名字",p:"míng zi",e:"name"},{c:"姓",p:"xìng",e:"surname"},{c:"叫",p:"jiào",e:"to be called"},{c:"你叫什么名字",p:"nǐ jiào shén me míng zi",e:"what's your name?"},{c:"你贵姓",p:"nǐ guì xìng",e:"what's your (honorable) surname?"},{c:"从哪里来",p:"cóng nǎ lǐ lái",e:"where are you from?"},{c:"来",p:"lái",e:"to come"},{c:"高兴",p:"gāo xìng",e:"happy"},{c:"认识你很高兴",p:"rèn shi nǐ hěn gāo xìng",e:"nice to meet you"},{c:"先生",p:"xiān sheng",e:"Mr."},{c:"的",p:"de",e:"possessive particle"},{c:"学习",p:"xué xí",e:"to study"},{c:"坐",p:"zuò",e:"to sit"},{c:"女士",p:"nǚ shì",e:"Ms."},{c:"哪里",p:"nǎ lǐ",e:"where"},{c:"家",p:"jiā",e:"home"},{c:"在",p:"zài",e:"to be at/in"},{c:"不用谢",p:"bù yòng xiè",e:"you're welcome"},{c:"对不起",p:"duì bù qǐ",e:"sorry"},{c:"晚",p:"wǎn",e:"late"},{c:"了",p:"le",e:"modal particle"},{c:"没关系",p:"méi guān xi",e:"it's ok"},{c:"请进",p:"qǐng jìn",e:"please come in"}],sentences:[{c:"你叫什么名字？",p:"nǐ jiào shén me míng zi?",e:"What's your name?"},{c:"我叫大为。",p:"wǒ jiào dà wéi.",e:"My name is David."},{c:"你贵姓？",p:"nǐ guì xìng?",e:"What's your surname?"},{c:"我姓王。",p:"wǒ xìng wáng.",e:"My surname is Wang."},{c:"你从哪里来？",p:"nǐ cóng nǎ lǐ lái?",e:"Where are you from?"},{c:"我从美国来。",p:"wǒ cóng měi guó lái.",e:"I'm from the US."},{c:"认识你很高兴。",p:"rèn shi nǐ hěn gāo xìng.",e:"Nice to meet you."},{c:"对不起，我来晚了。",p:"duì bù qǐ, wǒ lái wǎn le.",e:"Sorry, I'm late."},{c:"没关系。",p:"méi guān xi.",e:"It's ok."}],dialogues:[{title:"Visiting Mr. Wang's home",turns:[{speaker:"A",c:"你好。",p:"nǐ hǎo.",e:"Hello."},{speaker:"B",c:"你好。",p:"nǐ hǎo.",e:"Hello."},{speaker:"A",c:"请问，这是王先生的家吗？",p:"qǐng wèn, zhè shì wáng xiān sheng de jiā ma?",e:"Excuse me, is this Mr. Wang's home?"},{speaker:"B",c:"是。",p:"shì.",e:"Yes."},{speaker:"A",c:"他在吗？",p:"tā zài ma?",e:"Is he in?"},{speaker:"B",c:"在，请进！请坐！",p:"zài, qǐng jìn! qǐng zuò!",e:"Yes, please come in! Please sit!"},{speaker:"A",c:"认识你很高兴。",p:"rèn shi nǐ hěn gāo xìng.",e:"Nice to meet you."},{speaker:"B",c:"我也是。",p:"wǒ yě shì.",e:"Me too."},{speaker:"A",c:"我从美国来。",p:"wǒ cóng měi guó lái.",e:"I'm from America."}]},{title:"Apologizing for being late",turns:[{speaker:"A",c:"可以进来吗？",p:"kě yǐ jìn lái ma?",e:"May I come in?"},{speaker:"B",c:"请进！",p:"qǐng jìn!",e:"Please come in!"},{speaker:"A",c:"对不起，我来晚了。",p:"duì bù qǐ, wǒ lái wǎn le.",e:"Sorry, I'm late."},{speaker:"B",c:"没关系。",p:"méi guān xi.",e:"It's ok."}]}]},
+  {id:6,title:"L6 — Chinese Food",vocab:[{c:"餐厅",p:"cān tīng",e:"restaurant"},{c:"中国菜",p:"zhōng guó cài",e:"Chinese food"},{c:"菜",p:"cài",e:"food, dish"},{c:"饿",p:"è",e:"hungry"},{c:"肚子",p:"dù zi",e:"stomach"},{c:"肚子饿",p:"dù zi è",e:"to feel hungry"},{c:"想",p:"xiǎng",e:"to want (softer)"},{c:"有",p:"yǒu",e:"to have"},{c:"没有",p:"méi yǒu",e:"don't have"},{c:"菜单",p:"cài dān",e:"menu"},{c:"点菜",p:"diǎn cài",e:"to order food"},{c:"炒饭",p:"chǎo fàn",e:"fried rice"},{c:"古老肉",p:"gǔ lǎo ròu",e:"sweet & sour pork"},{c:"宫保鸡丁",p:"gōng bǎo jī dīng",e:"kung pao chicken"},{c:"锅贴",p:"guō tiē",e:"fried dumplings"},{c:"麻婆豆腐",p:"má pó dòu fu",e:"mapo tofu"},{c:"茄子",p:"qié zi",e:"eggplant"},{c:"红烧鱼",p:"hóng shāo yú",e:"braised fish"},{c:"西兰花",p:"xī lán huā",e:"broccoli"},{c:"蔬菜",p:"shū cài",e:"vegetables"},{c:"肉",p:"ròu",e:"meat"},{c:"鱼",p:"yú",e:"fish"},{c:"给",p:"gěi",e:"to give"},{c:"等一下",p:"děng yī xià",e:"wait a moment"},{c:"还",p:"hái",e:"also, else"},{c:"欢迎再来",p:"huān yíng zài lái",e:"welcome back"},{c:"好吃",p:"hǎo chī",e:"delicious"}],sentences:[{c:"我肚子饿了。",p:"wǒ dù zi è le.",e:"I'm hungry."},{c:"请给我菜单。",p:"qǐng gěi wǒ cài dān.",e:"Please give me the menu."},{c:"有没有古老肉？",p:"yǒu méi yǒu gǔ lǎo ròu?",e:"Do you have sweet and sour pork?"},{c:"你们的菜很好吃。",p:"nǐ men de cài hěn hǎo chī.",e:"Your food is delicious."}],dialogues:[{title:"Ordering at a restaurant",turns:[{speaker:"A",c:"我肚子饿了。",p:"wǒ dù zi è le.",e:"I'm hungry."},{speaker:"B",c:"好啊，我们去吃中国菜。",p:"hǎo a, wǒ men qù chī zhōng guó cài.",e:"Sure, let's go eat Chinese."},{speaker:"Waitress",c:"你好，你们想吃什么？",p:"nǐ hǎo, nǐ men xiǎng chī shén me?",e:"Hello, what would you like?"},{speaker:"A",c:"请给我菜单。",p:"qǐng gěi wǒ cài dān.",e:"Please give me a menu."},{speaker:"Waitress",c:"好，请等一下。",p:"hǎo, qǐng děng yī xià.",e:"Ok, please wait."},{speaker:"A",c:"有没有古老肉？",p:"yǒu méi yǒu gǔ lǎo ròu?",e:"Do you have sweet and sour pork?"},{speaker:"Waitress",c:"有。还想吃什么？",p:"yǒu. hái xiǎng chī shén me?",e:"Yes. What else?"},{speaker:"A",c:"还要炒饭。",p:"hái yào chǎo fàn.",e:"Also fried rice."}]}]},
+  {id:7,title:"L7 — Review & Slow-Speech",vocab:[{c:"喜欢",p:"xǐ huan",e:"to like"},{c:"想",p:"xiǎng",e:"to want"},{c:"要",p:"yào",e:"to want (insistent)"},{c:"有",p:"yǒu",e:"to have"},{c:"没有",p:"méi yǒu",e:"not have"},{c:"给",p:"gěi",e:"to give"},{c:"等一下",p:"děng yī xià",e:"wait a moment"},{c:"还",p:"hái",e:"also, else"},{c:"可以",p:"kě yǐ",e:"may, can"},{c:"请问",p:"qǐng wèn",e:"excuse me"},{c:"如果",p:"rú guǒ",e:"if"},{c:"慢慢",p:"màn màn",e:"slowly"},{c:"慢慢说",p:"màn màn shuō",e:"speak slowly"},{c:"不会说",p:"bù huì shuō",e:"can't say"},{c:"开始",p:"kāi shǐ",e:"to begin"},{c:"复习",p:"fù xí",e:"to review"},{c:"不知道",p:"bù zhī dào",e:"don't know"}],sentences:[{c:"我喜欢中国菜。",p:"wǒ xǐ huan zhōng guó cài.",e:"I like Chinese food."},{c:"我想喝咖啡。",p:"wǒ xiǎng hē kā fēi.",e:"I want to drink coffee."},{c:"请你慢慢说。",p:"qǐng nǐ màn màn shuō.",e:"Please speak slowly."},{c:"如果不会说，没关系。",p:"rú guǒ bù huì shuō, méi guān xi.",e:"If you can't say it, it's ok."}],dialogues:[{title:"Asking someone to speak slowly",turns:[{speaker:"A",c:"你会说汉语吗？",p:"nǐ huì shuō hàn yǔ ma?",e:"Can you speak Chinese?"},{speaker:"B",c:"会说，请你慢慢说。",p:"huì shuō, qǐng nǐ màn màn shuō.",e:"Yes, but please speak slowly."},{speaker:"A",c:"好，我慢慢说。",p:"hǎo, wǒ màn màn shuō.",e:"Ok, I'll speak slowly."},{speaker:"B",c:"谢谢！",p:"xiè xie!",e:"Thank you!"}]}]},
+  {id:8,title:"L8 — Hobbies",vocab:[{c:"今天",p:"jīn tiān",e:"today"},{c:"明天",p:"míng tiān",e:"tomorrow"},{c:"昨天",p:"zuó tiān",e:"yesterday"},{c:"后天",p:"hòu tiān",e:"day after tomorrow"},{c:"有意思",p:"yǒu yì si",e:"interesting"},{c:"现在",p:"xiàn zài",e:"now"},{c:"爱好",p:"ài hào",e:"hobby"},{c:"爱",p:"ài",e:"to love"},{c:"看书",p:"kàn shū",e:"to read a book"},{c:"游泳",p:"yóu yǒng",e:"to swim"},{c:"唱歌",p:"chàng gē",e:"to sing"},{c:"看电影",p:"kàn diàn yǐng",e:"to watch movies"},{c:"健身",p:"jiàn shēn",e:"to work out"},{c:"旅行",p:"lǚ xíng",e:"to travel"},{c:"太棒了",p:"tài bàng le",e:"that's great!"},{c:"那",p:"nà",e:"then, so"},{c:"请再说一次",p:"qǐng zài shuō yī cì",e:"please say it again"},{c:"时间",p:"shí jiān",e:"time"}],sentences:[{c:"你的爱好是什么？",p:"nǐ de ài hào shì shén me?",e:"What's your hobby?"},{c:"我喜欢游泳。",p:"wǒ xǐ huan yóu yǒng.",e:"I like to swim."},{c:"你明天做什么？",p:"nǐ míng tiān zuò shén me?",e:"What are you doing tomorrow?"},{c:"明天我很忙。",p:"míng tiān wǒ hěn máng.",e:"Tomorrow I'm busy."},{c:"太棒了！",p:"tài bàng le!",e:"That's great!"}],dialogues:[{title:"Making plans",turns:[{speaker:"A",c:"你明天做什么？",p:"nǐ míng tiān zuò shén me?",e:"What are you doing tomorrow?"},{speaker:"B",c:"对不起，请再说一次？",p:"duì bù qǐ, qǐng zài shuō yī cì?",e:"Sorry, say it again?"},{speaker:"A",c:"我明天要去唱歌，你去吗？",p:"wǒ míng tiān yào qù chàng gē, nǐ qù ma?",e:"I'm going singing tomorrow, you coming?"},{speaker:"B",c:"明天我很忙，没有时间。",p:"míng tiān wǒ hěn máng, méi yǒu shí jiān.",e:"Tomorrow I'm busy."},{speaker:"A",c:"那后天呢？",p:"nà hòu tiān ne?",e:"What about day after tomorrow?"},{speaker:"B",c:"后天可以。",p:"hòu tiān kě yǐ.",e:"Day after tomorrow works."}]},{title:"Hobbies",turns:[{speaker:"A",c:"你的爱好是什么？",p:"nǐ de ài hào shì shén me?",e:"What's your hobby?"},{speaker:"B",c:"我喜欢游泳。",p:"wǒ xǐ huan yóu yǒng.",e:"I like to swim."},{speaker:"A",c:"那我们去游泳！",p:"nà wǒ men qù yóu yǒng!",e:"Then let's go swimming!"}]}]},
+  {id:9,title:"L9 — Weather",vocab:[{c:"大家",p:"dà jiā",e:"everyone"},{c:"天气",p:"tiān qì",e:"weather"},{c:"冷",p:"lěng",e:"cold"},{c:"热",p:"rè",e:"hot"},{c:"经常",p:"jīng cháng",e:"often"},{c:"下雨",p:"xià yǔ",e:"to rain"},{c:"出",p:"chū",e:"to come out"},{c:"太阳",p:"tài yáng",e:"sun"},{c:"下雪",p:"xià xuě",e:"to snow"},{c:"刮风",p:"guā fēng",e:"to be windy"},{c:"国家",p:"guó jiā",e:"country"},{c:"冬天",p:"dōng tiān",e:"winter"},{c:"夏天",p:"xià tiān",e:"summer"},{c:"春天",p:"chūn tiān",e:"spring"},{c:"秋天",p:"qiū tiān",e:"autumn"},{c:"月",p:"yuè",e:"month"},{c:"一月",p:"yī yuè",e:"January"},{c:"二月",p:"èr yuè",e:"February"},{c:"几月",p:"jǐ yuè",e:"what month"},{c:"抱歉",p:"bào qiàn",e:"sorry"},{c:"知道",p:"zhī dào",e:"to know"},{c:"马马虎虎",p:"mǎ mǎ hū hū",e:"so-so"},{c:"舒服",p:"shū fu",e:"comfortable"},{c:"但是",p:"dàn shì",e:"but"},{c:"可惜",p:"kě xī",e:"a pity"},{c:"时候",p:"shí hou",e:"time"}],sentences:[{c:"今天天气怎么样？",p:"jīn tiān tiān qì zěn me yàng?",e:"How's the weather today?"},{c:"天气很冷，下雨。",p:"tiān qì hěn lěng, xià yǔ.",e:"It's cold and raining."},{c:"现在天气很舒服。",p:"xiàn zài tiān qì hěn shū fu.",e:"The weather is pleasant now."},{c:"夏天经常下雨。",p:"xià tiān jīng cháng xià yǔ.",e:"In summer it often rains."}],dialogues:[{title:"Today's weather",turns:[{speaker:"A",c:"今天天气怎么样？",p:"jīn tiān tiān qì zěn me yàng?",e:"How's the weather today?"},{speaker:"B",c:"天气很冷，下雨。",p:"tiān qì hěn lěng, xià yǔ.",e:"It's cold and raining."},{speaker:"A",c:"我不喜欢下雨！",p:"wǒ bù xǐ huan xià yǔ!",e:"I don't like rain!"},{speaker:"B",c:"没关系，明天就会出太阳。",p:"méi guān xi, míng tiān jiù huì chū tài yáng.",e:"Sun will come out tomorrow."}]},{title:"Seasons",turns:[{speaker:"A",c:"你们国家天气怎么样？",p:"nǐ men guó jiā tiān qì zěn me yàng?",e:"What's weather in your country?"},{speaker:"B",c:"冬天很冷，下雪。",p:"dōng tiān hěn lěng, xià xuě.",e:"Winter is cold and snowy."},{speaker:"A",c:"夏天呢？",p:"xià tiān ne?",e:"What about summer?"},{speaker:"B",c:"夏天经常下雨。",p:"xià tiān jīng cháng xià yǔ.",e:"Summer often rains."},{speaker:"A",c:"秋天呢？",p:"qiū tiān ne?",e:"Autumn?"},{speaker:"B",c:"秋天天气很舒服。",p:"qiū tiān tiān qì hěn shū fu.",e:"Autumn is pleasant."}]}]},
+  {id:10,title:"L10 — Meeting New People",vocab:[{c:"早",p:"zǎo",e:"morning"},{c:"早上",p:"zǎo shang",e:"morning"},{c:"早上好",p:"zǎo shang hǎo",e:"good morning"},{c:"晚上",p:"wǎn shang",e:"evening"},{c:"晚上好",p:"wǎn shang hǎo",e:"good evening"},{c:"晚安",p:"wǎn ān",e:"good night"},{c:"敝姓",p:"bì xìng",e:"my surname is (humble)"},{c:"名片",p:"míng piàn",e:"business card"},{c:"不好意思",p:"bù hǎo yì si",e:"sorry, embarrassed"},{c:"用",p:"yòng",e:"to use"},{c:"完",p:"wán",e:"to finish"},{c:"了",p:"le",e:"completion particle"},{c:"请问一下",p:"qǐng wèn yī xià",e:"excuse me (polite)"},{c:"公司",p:"gōng sī",e:"company"},{c:"经理",p:"jīng lǐ",e:"manager"},{c:"总经理",p:"zǒng jīng lǐ",e:"general manager"},{c:"是吗",p:"shì ma",e:"really?"},{c:"事",p:"shì",e:"matter, business"},{c:"找",p:"zhǎo",e:"to look for"},{c:"里边",p:"lǐ biān",e:"inside"},{c:"中文",p:"zhōng wén",e:"Chinese language"},{c:"非常",p:"fēi cháng",e:"very, extremely"},{c:"几点钟",p:"jǐ diǎn zhōng",e:"what time?"},{c:"您",p:"nín",e:"you (polite)"},{c:"认识",p:"rèn shi",e:"to know (someone)"},{c:"介绍",p:"jiè shào",e:"to introduce"},{c:"请",p:"qǐng",e:"please"}],sentences:[{c:"您贵姓？",p:"nín guì xìng?",e:"What is your surname?"},{c:"敝姓张。",p:"bì xìng zhāng.",e:"My surname is Zhang."},{c:"这是我的名片。",p:"zhè shì wǒ de míng piàn.",e:"This is my business card."},{c:"我来介绍一下。",p:"wǒ lái jiè shào yī xià.",e:"Let me introduce."},{c:"现在几点钟？",p:"xiàn zài jǐ diǎn zhōng?",e:"What time is it now?"},{c:"八点钟。",p:"bā diǎn zhōng.",e:"Eight o'clock."}],dialogues:[{title:"Exchanging business cards",turns:[{speaker:"A",c:"早！",p:"zǎo!",e:"Morning!"},{speaker:"B",c:"早！",p:"zǎo!",e:"Morning!"},{speaker:"A",c:"我叫郭大为，您贵姓？",p:"wǒ jiào guō dà wéi, nín guì xìng?",e:"I'm David Kuo, your surname?"},{speaker:"B",c:"敝姓张。",p:"bì xìng zhāng.",e:"My surname is Zhang."},{speaker:"A",c:"这是我的名片。",p:"zhè shì wǒ de míng piàn.",e:"This is my card."},{speaker:"B",c:"谢谢。",p:"xiè xie.",e:"Thanks."}]},{title:"Inviting someone for coffee",turns:[{speaker:"A",c:"那是谁？",p:"nà shì shéi?",e:"Who is that?"},{speaker:"B",c:"那是安娜。",p:"nà shì ān nà.",e:"That's Anna."},{speaker:"A",c:"我不认识她。",p:"wǒ bù rèn shi tā.",e:"I don't know her."},{speaker:"B",c:"我来介绍一下。",p:"wǒ lái jiè shào yī xià.",e:"Let me introduce."},{speaker:"A",c:"认识你非常高兴。",p:"rèn shi nǐ fēi cháng gāo xìng.",e:"Glad to meet you."}]}]}
+];
+
+/* ============================================================
+   APP STATE
+============================================================ */
+let currentLesson = LESSONS[0];
+let voices = [];
+let chineseVoice = null;
+
+function getStudyPool(lesson, type) {
+  return type === "sentences" ? (lesson.sentences || []) : (lesson.vocab || []);
+}
+
+/* ============================================================
+   TEXT-TO-SPEECH
+============================================================ */
+function loadVoices() {
+  voices = speechSynthesis.getVoices();
+  const sel = document.getElementById("voiceSelect");
+  sel.innerHTML = "";
+  const zh = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith("zh"));
+  if (zh.length === 0) {
+    const o = document.createElement("option");
+    o.textContent = "No Mandarin voice found";
+    o.disabled = true;
+    sel.appendChild(o);
+    return;
+  }
+  zh.forEach((v, i) => {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = v.name + " (" + v.lang + ")";
+    sel.appendChild(o);
+  });
+  chineseVoice = zh[0];
+  sel.addEventListener("change", () => { chineseVoice = zh[parseInt(sel.value)]; });
+}
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+function speak(text, rate = 0.85) {
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "zh-CN";
+  if (chineseVoice) u.voice = chineseVoice;
+  u.rate = rate;
+  speechSynthesis.speak(u);
+}
+
+/* ============================================================
+   SPEECH RECOGNITION + MATCHING
+   The matching function rejects partial answers — it requires
+   the user to have said roughly the full target, not just a
+   prefix that happens to be a substring of the target.
+============================================================ */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function normalize(t) { return t.replace(/[\s，。！？、,.!?]/g, ""); }
+
+function matches(heard, target) {
+  const h = normalize(heard);
+  const t = normalize(target);
+  if (!h || !t) return { ok: false, score: 0, coverage: 0, precision: 0, lengthRatio: 0 };
+  if (h === t) return { ok: true, score: 1, coverage: 1, precision: 1, lengthRatio: 1 };
+
+  // Coverage: % of target characters that appear in the heard text.
+  // Catches: said only part of the target → low coverage → fail.
+  let covered = 0;
+  for (const ch of t) if (h.includes(ch)) covered++;
+  const coverage = covered / t.length;
+
+  // Precision: % of heard characters that are in target.
+  // Catches: said the right words plus a lot of unrelated noise → low precision → fail.
+  let relevant = 0;
+  for (const ch of h) if (t.includes(ch)) relevant++;
+  const precision = relevant / h.length;
+
+  // Length ratio: heard length must be close to target length.
+  // Catches: said a short prefix that happens to be a substring.
+  const lengthRatio = Math.min(h.length, t.length) / Math.max(h.length, t.length);
+
+  // Final score = min of the three. A weakness in any axis fails the match.
+  const score = Math.min(coverage, precision, lengthRatio);
+  return { ok: score >= 0.75, score, coverage, precision, lengthRatio };
+}
+
+// Expose for testing from the browser console / Playwright
+window.__matches = matches;
+window.__normalize = normalize;
+
+function getRecognizer() {
+  if (!SR) return null;
+  const r = new SR();
+  r.lang = "zh-CN";
+  r.continuous = true;          // FIX: don't stop on first pause — wait for user
+  r.interimResults = true;       // FIX: show what's being heard in real time
+  r.maxAlternatives = 5;
+  return r;
+}
+
+// Wraps a recognizer so the user explicitly starts and stops it.
+// onInterim(text) fires for partial results; onFinal(transcripts[]) when stopped.
+function startRecognition(onInterim, onFinal, onError) {
+  if (!SR) { onError && onError("not-supported"); return null; }
+  const rec = getRecognizer();
+  let finalAlts = new Set();
+  let finalTranscript = "";
+  let stopped = false;
+
+  rec.onresult = (ev) => {
+    let interim = "";
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      const res = ev.results[i];
+      if (res.isFinal) {
+        for (let k = 0; k < res.length; k++) finalAlts.add(res[k].transcript);
+        finalTranscript += res[0].transcript;
+      } else {
+        interim += res[0].transcript;
+      }
+    }
+    onInterim && onInterim(finalTranscript + interim);
+  };
+  rec.onerror = (ev) => { onError && onError(ev.error); };
+  rec.onend = () => {
+    if (stopped) return;
+    stopped = true;
+    onFinal && onFinal(Array.from(finalAlts).length ? Array.from(finalAlts) : (finalTranscript ? [finalTranscript] : []));
+  };
+  try { rec.start(); } catch(e) { onError && onError(e.message); return null; }
+  return {
+    stop() { stopped = false; try { rec.stop(); } catch(e){} }
+  };
+}
+
+/* ============================================================
+   TAB SWITCHING — cancels TTS, refreshes Write tab on activation
+============================================================ */
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    speechSynthesis.cancel();
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("view-" + t.dataset.view).classList.add("active");
+    if (t.dataset.view === "write") wrRender();   // re-render writer canvases
+  });
+});
+
+/* ============================================================
+   LESSON SELECTOR
+============================================================ */
+const lessonSelect = document.getElementById("lessonSelect");
+LESSONS.forEach((l, i) => {
+  const o = document.createElement("option");
+  o.value = i; o.textContent = l.title;
+  lessonSelect.appendChild(o);
+});
+lessonSelect.addEventListener("change", () => {
+  speechSynthesis.cancel();
+  currentLesson = LESSONS[parseInt(lessonSelect.value)];
+  resetAll();
+});
+
+/* ============================================================
+   FLASHCARDS
+============================================================ */
+let fcType = "vocab", fcIndex = 0, fcPool = [], fcRevealed = false;
+
+function fcLoad() {
+  fcPool = getStudyPool(currentLesson, fcType).slice();
+  fcIndex = 0; fcRevealed = false;
+  document.getElementById("fcTotal").textContent = fcPool.length;
+  fcRender();
+}
+function fcRender() {
+  const it = fcPool[fcIndex]; if (!it) return;
+  document.getElementById("fcChar").textContent = it.c;
+  document.getElementById("fcPinyin").textContent = it.p;
+  document.getElementById("fcEnglish").textContent = it.e;
+  document.getElementById("fcIndex").textContent = fcIndex + 1;
+  document.getElementById("fcPinyin").style.display = fcRevealed ? "" : "none";
+  document.getElementById("fcEnglish").style.display = fcRevealed ? "" : "none";
+  document.getElementById("fcHint").style.display = fcRevealed ? "none" : "";
+}
+document.getElementById("flashcard").addEventListener("click", () => { fcRevealed = !fcRevealed; fcRender(); });
+document.getElementById("fcPrev").addEventListener("click", () => { fcIndex = (fcIndex - 1 + fcPool.length) % fcPool.length; fcRevealed = false; fcRender(); });
+document.getElementById("fcNext").addEventListener("click", () => { fcIndex = (fcIndex + 1) % fcPool.length; fcRevealed = false; fcRender(); });
+document.getElementById("fcSpeak").addEventListener("click", (e) => { e.stopPropagation(); speak(fcPool[fcIndex].c); });
+document.getElementById("fcShuffle").addEventListener("click", () => {
+  for (let i = fcPool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [fcPool[i], fcPool[j]] = [fcPool[j], fcPool[i]]; }
+  fcIndex = 0; fcRevealed = false; fcRender();
+});
+document.getElementById("fcSentences").addEventListener("click", (e) => {
+  fcType = fcType === "vocab" ? "sentences" : "vocab";
+  e.target.textContent = fcType === "vocab" ? "Switch to sentences" : "Switch to vocabulary";
+  fcLoad();
+});
+
+/* ============================================================
+   LISTEN & SPEAK — toggle mic, live interim, strict matching
+============================================================ */
+let lsType = "vocab", lsIndex = 0, lsPool = [], lsActiveRec = null;
+
+function lsLoad() {
+  lsPool = getStudyPool(currentLesson, lsType).slice();
+  lsIndex = 0;
+  document.getElementById("lsTotal").textContent = lsPool.length;
+  lsRender();
+}
+function lsRender() {
+  const it = lsPool[lsIndex]; if (!it) return;
+  document.getElementById("lsChar").textContent = it.c;
+  document.getElementById("lsPinyin").textContent = it.p;
+  document.getElementById("lsEnglish").textContent = it.e;
+  document.getElementById("lsIndex").textContent = lsIndex + 1;
+  document.getElementById("lsHeard").className = "heard";
+  document.getElementById("lsHeard").innerHTML = '<div class="heard-label">Your turn — tap the mic</div>';
+}
+document.getElementById("lsPlay").addEventListener("click", () => speak(lsPool[lsIndex].c));
+document.getElementById("lsPrev").addEventListener("click", () => { if (lsActiveRec) { lsActiveRec.stop(); lsActiveRec = null; } lsIndex = (lsIndex - 1 + lsPool.length) % lsPool.length; lsRender(); });
+document.getElementById("lsNext").addEventListener("click", () => { if (lsActiveRec) { lsActiveRec.stop(); lsActiveRec = null; } lsIndex = (lsIndex + 1) % lsPool.length; lsRender(); });
+document.getElementById("lsToggleType").addEventListener("click", (e) => {
+  lsType = lsType === "vocab" ? "sentences" : "vocab";
+  e.target.textContent = "Practice: " + (lsType === "vocab" ? "Vocabulary" : "Sentences");
+  lsLoad();
+});
+
+document.getElementById("lsMic").addEventListener("click", () => {
+  const btn = document.getElementById("lsMic");
+  const heardEl = document.getElementById("lsHeard");
+
+  // If already recording → stop and evaluate
+  if (lsActiveRec) {
+    lsActiveRec.stop();
+    return;
+  }
+
+  if (!SR) {
+    heardEl.innerHTML = '<div class="heard-label">Speech recognition not supported</div><div>Use Chrome or Edge desktop.</div>';
+    return;
+  }
+
+  const target = lsPool[lsIndex];
+  btn.classList.add("recording");
+  heardEl.className = "heard listening";
+  heardEl.innerHTML = '<div class="heard-label">Listening… tap mic again to stop</div><div class="heard-interim" id="lsInterim"></div>';
+
+  lsActiveRec = startRecognition(
+    (interim) => {
+      const ie = document.getElementById("lsInterim");
+      if (ie) ie.textContent = interim;
+    },
+    (transcripts) => {
+      btn.classList.remove("recording");
+      lsActiveRec = null;
+      if (transcripts.length === 0) {
+        heardEl.className = "heard incorrect";
+        heardEl.innerHTML = '<div class="heard-label">Nothing heard</div><div class="feedback incorrect">Try again — speak clearly into the mic.</div>';
+        return;
+      }
+      // Pick best matching alternative
+      let best = { score: 0, heard: transcripts[0], ok: false, coverage: 0, precision: 0, lengthRatio: 0 };
+      for (const alt of transcripts) {
+        const r = matches(alt, target.c);
+        if (r.score > best.score) best = { ...r, heard: alt };
+      }
+      heardEl.className = "heard " + (best.ok ? "correct" : "incorrect");
+      heardEl.innerHTML =
+        '<div class="heard-label">You said</div>' +
+        '<div class="heard-text">' + best.heard + '</div>' +
+        '<div class="feedback ' + (best.ok ? "correct" : "incorrect") + '">' +
+          (best.ok ? "✓ Correct! (" + Math.round(best.score*100) + "% match)" : "✗ Target: " + target.c + " (" + target.p + ")") +
+        '</div>' +
+        '<div class="score-detail">coverage ' + Math.round(best.coverage*100) + '% · precision ' + Math.round(best.precision*100) + '% · length ' + Math.round(best.lengthRatio*100) + '%</div>';
+    },
+    (err) => {
+      btn.classList.remove("recording");
+      lsActiveRec = null;
+      heardEl.className = "heard incorrect";
+      heardEl.innerHTML = '<div class="heard-label">Error</div><div>' + err + ' — check mic permissions.</div>';
+    }
+  );
+});
+
+if (!SR) document.getElementById("speechHelp").innerHTML = "<strong>⚠ Speech recognition is not supported in this browser.</strong> Use Chrome or Edge desktop for the mic features.";
+
+/* ============================================================
+   DIALOGUE — toggle mic, strict matching, no auto-play unless tab active
+============================================================ */
+const dlgSelect = document.getElementById("dialogueSelect");
+let currentDialogue = null, dlgTurnIndex = 0, dlgActiveRec = null;
+
+function dlgLoad() {
+  dlgSelect.innerHTML = "";
+  (currentLesson.dialogues || []).forEach((d, i) => {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = d.title;
+    dlgSelect.appendChild(o);
+  });
+  dlgSelectChange();
+}
+function dlgSelectChange() {
+  if (!currentLesson.dialogues || currentLesson.dialogues.length === 0) {
+    document.getElementById("dlgBox").innerHTML = "<em>No dialogues for this lesson.</em>";
+    return;
+  }
+  currentDialogue = currentLesson.dialogues[parseInt(dlgSelect.value) || 0];
+  dlgTurnIndex = 0;
+  dlgRender();
+  if (document.getElementById("view-dialogue").classList.contains("active")) {
+    setTimeout(dlgAdvance, 400);
+  }
+}
+dlgSelect.addEventListener("change", dlgSelectChange);
+
+function dlgRender() {
+  const box = document.getElementById("dlgBox");
+  box.innerHTML = '<div class="dialogue-title">' + currentDialogue.title + '</div>';
+  currentDialogue.turns.slice(0, dlgTurnIndex).forEach((t, i) => {
+    const isUser = i % 2 === 1;
+    const div = document.createElement("div");
+    div.className = "turn " + (isUser ? "user" : "app");
+    div.innerHTML =
+      '<button class="play-btn" onclick="speak(\'' + t.c.replace(/'/g,"\\'") + '\')">🔊</button>' +
+      '<div class="turn-speaker">' + (isUser ? "You (" + t.speaker + ")" : "App (" + t.speaker + ")") + '</div>' +
+      '<div class="turn-char">' + t.c + '</div>' +
+      '<div class="turn-pinyin">' + t.p + '</div>' +
+      '<div class="turn-english">' + t.e + '</div>';
+    box.appendChild(div);
+  });
+  if (dlgTurnIndex < currentDialogue.turns.length && dlgTurnIndex % 2 === 1) {
+    const n = currentDialogue.turns[dlgTurnIndex];
+    const div = document.createElement("div");
+    div.className = "turn prompt";
+    div.innerHTML =
+      '<div class="turn-speaker">Your turn — say:</div>' +
+      '<div class="turn-char">' + n.c + '</div>' +
+      '<div class="turn-pinyin">' + n.p + '</div>' +
+      '<div class="turn-english">' + n.e + '</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:6px;">Tap the mic to start, tap again when done</div>';
+    box.appendChild(div);
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+function dlgAdvance() {
+  if (!currentDialogue || dlgTurnIndex >= currentDialogue.turns.length) return;
+  if (!document.getElementById("view-dialogue").classList.contains("active")) return;
+  const turn = currentDialogue.turns[dlgTurnIndex];
+  const isUser = dlgTurnIndex % 2 === 1;
+  if (isUser) {
+    dlgRender();
+  } else {
+    dlgTurnIndex++;
+    dlgRender();
+    speak(turn.c);
+    setTimeout(() => {
+      if (dlgTurnIndex < currentDialogue.turns.length && dlgTurnIndex % 2 === 0) dlgAdvance();
+    }, Math.max(1500, turn.c.length * 350));
+  }
+}
+
+document.getElementById("dlgMic").addEventListener("click", () => {
+  if (!currentDialogue || dlgTurnIndex >= currentDialogue.turns.length || dlgTurnIndex % 2 !== 1) return;
+
+  const btn = document.getElementById("dlgMic");
+
+  // If already recording → stop and evaluate
+  if (dlgActiveRec) { dlgActiveRec.stop(); return; }
+
+  if (!SR) {
+    alert("Speech recognition not supported. Use Chrome or Edge desktop.");
+    dlgTurnIndex++; dlgAdvance(); return;
+  }
+
+  const target = currentDialogue.turns[dlgTurnIndex];
+  btn.classList.add("recording");
+  const box = document.getElementById("dlgBox");
+
+  // Add interim listening bubble
+  const interimDiv = document.createElement("div");
+  interimDiv.className = "turn user";
+  interimDiv.style.borderLeftColor = "var(--accent-2)";
+  interimDiv.innerHTML = '<div class="turn-speaker">Listening… tap mic to stop</div><div class="turn-char" id="dlgInterimText" style="color:var(--muted);font-style:italic;">…</div>';
+  box.appendChild(interimDiv);
+  box.scrollTop = box.scrollHeight;
+
+  dlgActiveRec = startRecognition(
+    (interim) => { const el = document.getElementById("dlgInterimText"); if (el) el.textContent = interim || "…"; },
+    (transcripts) => {
+      btn.classList.remove("recording");
+      dlgActiveRec = null;
+      interimDiv.remove();
+
+      if (transcripts.length === 0) {
+        const div = document.createElement("div");
+        div.className = "turn user";
+        div.style.borderLeftColor = "var(--bad)";
+        div.innerHTML = '<div class="turn-speaker">Nothing heard ✗</div><div class="turn-char">Try again</div>';
+        box.appendChild(div);
+        return;
+      }
+
+      let best = { score: 0, heard: transcripts[0], ok: false, coverage: 0, precision: 0, lengthRatio: 0 };
+      for (const alt of transcripts) {
+        const r = matches(alt, target.c);
+        if (r.score > best.score) best = { ...r, heard: alt };
+      }
+
+      const div = document.createElement("div");
+      div.className = "turn user";
+      div.style.borderLeftColor = best.ok ? "var(--good)" : "var(--bad)";
+      div.innerHTML =
+        '<div class="turn-speaker">You said ' + (best.ok ? "✓" : "✗ (target: " + target.c + ")") + '</div>' +
+        '<div class="turn-char">' + best.heard + '</div>' +
+        '<div class="turn-pinyin" style="color:' + (best.ok ? "var(--good)" : "var(--bad)") + ';">Match: ' + Math.round(best.score*100) + '% (cov ' + Math.round(best.coverage*100) + '% · prec ' + Math.round(best.precision*100) + '%)</div>';
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+
+      dlgTurnIndex++;
+      setTimeout(dlgAdvance, 800);
+    },
+    (err) => {
+      btn.classList.remove("recording");
+      dlgActiveRec = null;
+      interimDiv.remove();
+    }
+  );
+});
+
+document.getElementById("dlgRestart").addEventListener("click", () => { speechSynthesis.cancel(); if (dlgActiveRec) { dlgActiveRec.stop(); dlgActiveRec = null; } dlgSelectChange(); });
+document.getElementById("dlgPlayAll").addEventListener("click", async () => {
+  if (!currentDialogue) return;
+  for (const t of currentDialogue.turns) {
+    speak(t.c);
+    await new Promise(r => setTimeout(r, Math.max(1800, t.c.length * 400)));
+  }
+});
+
+/* ============================================================
+   WRITE — stroke order animation + handwriting quiz (Hanzi Writer)
+============================================================ */
+let wrIndex = 0, wrPool = [], wrMode = "animate", wrWriters = [];
+
+function wrLoad() {
+  wrPool = (currentLesson.vocab || []).slice();
+  wrIndex = 0;
+  document.getElementById("wrTotal").textContent = wrPool.length;
+  if (document.getElementById("view-write").classList.contains("active")) wrRender();
+}
+
+function wrRender() {
+  // Tear down old writer instances
+  wrWriters.forEach(w => { try { w.cancelQuiz && w.cancelQuiz(); } catch(e){} });
+  wrWriters = [];
+
+  const item = wrPool[wrIndex];
+  const grid = document.getElementById("strokeGrid");
+  const info = document.getElementById("writeInfo");
+  grid.innerHTML = "";
+  info.textContent = "";
+
+  if (!item) {
+    info.textContent = "No characters in this lesson.";
+    return;
+  }
+
+  document.getElementById("wrPinyin").textContent = item.p;
+  document.getElementById("wrEnglish").textContent = item.e;
+  document.getElementById("wrIndex").textContent = wrIndex + 1;
+
+  if (typeof HanziWriter === "undefined") {
+    info.innerHTML = "⚠ Stroke library couldn't load. This requires an internet connection. Reload the page once connected.";
+    return;
+  }
+
+  // Render one writer per character in the word/phrase
+  const chars = Array.from(item.c).filter(ch => /[一-鿿]/.test(ch));   // CJK chars only
+  if (chars.length === 0) {
+    info.textContent = "No Chinese characters to practice in this entry.";
+    return;
+  }
+
+  const size = chars.length > 4 ? 110 : 150;
+  chars.forEach((ch, i) => {
+    const cell = document.createElement("div");
+    cell.className = "stroke-cell";
+    const targetId = "stroke-" + i + "-" + Math.random().toString(36).slice(2,7);
+    cell.innerHTML = '<div class="stroke-label">' + (i+1) + '</div><div id="' + targetId + '"></div><div class="stroke-pinyin">' + ch + '</div>';
+    grid.appendChild(cell);
+
+    try {
+      const writer = HanziWriter.create(targetId, ch, {
+        width: size, height: size, padding: 5,
+        showOutline: wrMode === "quiz" ? false : true,
+        showCharacter: wrMode === "animate",
+        strokeAnimationSpeed: 1,
+        delayBetweenStrokes: 200,
+        strokeColor: "#f59e0b",
+        radicalColor: "#ef4444",
+        outlineColor: "#475569",
+        drawingColor: "#22c55e",
+        drawingWidth: 6,
+        showHintAfterMisses: 2,
+        onLoadCharDataError: () => {
+          cell.classList.add("error");
+          cell.querySelector("#" + targetId).innerHTML = '<div style="padding:30px;text-align:center;font-size:40px;color:var(--muted);">' + ch + '</div>';
+          info.textContent = "Note: stroke data not available for some characters.";
+        }
+      });
+      wrWriters.push(writer);
+
+      if (wrMode === "animate") {
+        // Animate after a small delay so all cells initialize first
+        setTimeout(() => { try { writer.animateCharacter(); } catch(e){} }, 200 + i * 400);
+      } else {
+        // Quiz mode: hide character and let user trace
+        writer.quiz({
+          onComplete: (summary) => {
+            cell.classList.add("complete");
+            info.textContent = "Character " + (i+1) + ": " + summary.totalMistakes + " mistake" + (summary.totalMistakes === 1 ? "" : "s") + ". Tap Redo to try again.";
+          },
+          onCorrectStroke: () => {},
+          onMistake: (data) => {
+            info.textContent = "Stroke " + (data.strokeNum + 1) + " — try again (" + data.mistakesOnStroke + "/" + (data.totalMistakes + data.mistakesOnStroke) + " mistakes).";
+          }
+        });
+      }
+    } catch (e) {
+      cell.classList.add("error");
+      info.textContent = "Couldn't render character: " + e.message;
+    }
+  });
+
+  if (wrMode === "animate") info.textContent = "Watch the strokes draw themselves. Switch to Quiz mode to practice.";
+  else info.textContent = "Trace each stroke in order with your mouse or finger.";
+}
+
+document.getElementById("wrPrev").addEventListener("click", () => { wrIndex = (wrIndex - 1 + wrPool.length) % wrPool.length; wrRender(); });
+document.getElementById("wrNext").addEventListener("click", () => { wrIndex = (wrIndex + 1) % wrPool.length; wrRender(); });
+document.getElementById("wrRedo").addEventListener("click", () => wrRender());
+document.getElementById("wrModeAnimate").addEventListener("click", () => {
+  wrMode = "animate";
+  document.getElementById("wrModeAnimate").classList.add("active");
+  document.getElementById("wrModeQuiz").classList.remove("active");
+  wrRender();
+});
+document.getElementById("wrModeQuiz").addEventListener("click", () => {
+  wrMode = "quiz";
+  document.getElementById("wrModeQuiz").classList.add("active");
+  document.getElementById("wrModeAnimate").classList.remove("active");
+  wrRender();
+});
+
+/* ============================================================
+   QUIZ
+============================================================ */
+let quizQuestions = [], qIdx = 0, qScore = 0, qLocked = false;
+
+function buildQuiz() {
+  const pool = (currentLesson.vocab || []).slice();
+  if (pool.length < 4) return [];
+  const sh = pool.slice().sort(() => Math.random() - 0.5).slice(0, Math.min(10, pool.length));
+  return sh.map(item => {
+    const dis = pool.filter(x => x.c !== item.c).sort(() => Math.random() - 0.5).slice(0, 3);
+    const options = [item, ...dis].sort(() => Math.random() - 0.5);
+    return { item, options, mode: document.getElementById("quizMode").value };
+  });
+}
+
+function renderQuiz() {
+  if (quizQuestions.length === 0) {
+    document.getElementById("quizQuestion").innerHTML = "Not enough vocabulary in this lesson.";
+    document.getElementById("quizOptions").innerHTML = "";
+    return;
+  }
+  const q = quizQuestions[qIdx];
+  document.getElementById("qNum").textContent = qIdx + 1;
+  document.getElementById("qTotal").textContent = quizQuestions.length;
+  document.getElementById("qScore").textContent = qScore;
+  const qq = document.getElementById("quizQuestion");
+  const qs = document.getElementById("quizSub");
+  const opts = document.getElementById("quizOptions");
+  document.getElementById("quizFeedback").innerHTML = "";
+  qLocked = false;
+  opts.innerHTML = "";
+
+  if (q.mode === "char-to-eng") { qq.innerHTML = '<div class="char">' + q.item.c + '</div>'; qs.textContent = "What does this mean?"; }
+  else if (q.mode === "eng-to-char") { qq.textContent = q.item.e; qs.textContent = "Pick the matching Chinese:"; }
+  else if (q.mode === "listen") {
+    qq.innerHTML = '<button class="primary" onclick="speak(\'' + q.item.c.replace(/'/g,"\\'") + '\')">🔊 Listen again</button>';
+    qs.textContent = "What did you hear?";
+    if (document.getElementById("view-quiz").classList.contains("active")) speak(q.item.c);
+  }
+  else if (q.mode === "pinyin") { qq.innerHTML = '<div class="char">' + q.item.c + '</div>'; qs.textContent = "What's the pinyin?"; }
+
+  q.options.forEach(opt => {
+    const b = document.createElement("button");
+    b.className = "option";
+    if (q.mode === "char-to-eng") b.textContent = opt.e;
+    else if (q.mode === "eng-to-char") b.innerHTML = '<strong style="font-size:18px;">' + opt.c + '</strong> <span style="color:var(--muted);font-size:13px;">' + opt.p + '</span>';
+    else if (q.mode === "listen") b.innerHTML = '<strong>' + opt.c + '</strong> — ' + opt.e;
+    else if (q.mode === "pinyin") b.textContent = opt.p;
+    b.addEventListener("click", () => {
+      if (qLocked) return;
+      qLocked = true;
+      const correct = opt.c === q.item.c;
+      if (correct) {
+        b.classList.add("correct"); qScore++;
+        document.getElementById("quizFeedback").innerHTML = '<span style="color:var(--good);font-weight:600;">✓ Correct!</span>';
+      } else {
+        b.classList.add("wrong");
+        document.getElementById("quizFeedback").innerHTML = '<span style="color:var(--bad);">✗ Correct answer: <strong>' + q.item.c + '</strong> (' + q.item.p + ') — ' + q.item.e + '</span>';
+      }
+      document.getElementById("qScore").textContent = qScore;
+      setTimeout(() => {
+        qIdx++;
+        if (qIdx >= quizQuestions.length) {
+          document.getElementById("quizQuestion").innerHTML = '<div style="font-size:48px;">🎉</div>Quiz complete!';
+          document.getElementById("quizSub").innerHTML = 'You scored <strong>' + qScore + '/' + quizQuestions.length + '</strong>';
+          document.getElementById("quizOptions").innerHTML = "";
+          document.getElementById("quizFeedback").innerHTML = '<button class="primary" onclick="startQuiz()">↺ Try again</button>';
+        } else renderQuiz();
+      }, 1400);
+    });
+    opts.appendChild(b);
+  });
+}
+function startQuiz() { qIdx = 0; qScore = 0; quizQuestions = buildQuiz(); renderQuiz(); }
+document.getElementById("quizRestart").addEventListener("click", startQuiz);
+document.getElementById("quizMode").addEventListener("change", startQuiz);
+
+/* ============================================================
+   INIT
+============================================================ */
+function resetAll() {
+  fcLoad();
+  lsLoad();
+  dlgLoad();
+  wrLoad();
+  startQuiz();
+}
+resetAll();
+</script>
+</body>
+</html>
